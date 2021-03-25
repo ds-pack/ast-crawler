@@ -12,7 +12,7 @@ yarn add @matthamlin/ast-crawler
 ## Usage:
 
 ```tsx
-import { generateASTMap, visit } from '@matthamlin/ast-crawler'
+import { generateASTMap, visit, find } from '@matthamlin/ast-crawler'
 
 // Implementing a local cache for parsers
 import { parse } from '@babel/parser'
@@ -45,8 +45,7 @@ function createParser(filepath) {
 }
 
 let astMap = generateASTMap({
-  pathName: path.join('./src'),
-  extensions: ['.js', '.ts', '.tsx'],
+  files: find({ root: path.join('./src'), extensions: ['.js', '.ts', '.tsx'] }),
   createParser,
 })
 

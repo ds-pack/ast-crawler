@@ -1,6 +1,6 @@
 {
   "name": "@matthamlin/ast-crawler",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist/index.js",
   "source": "src/index.tsx",
   "types": "dist/index.d.ts",
@@ -9,7 +9,8 @@
   "license": "MIT",
   "scripts": {
     "prebuild": "rm -rf dist/",
-    "build": "babel src/ --out-dir dist/ --extensions '.ts,.tsx' && tsc",
+    "build": "babel src/ --out-dir dist/ --extensions '.ts,.tsx'",
+    "postbuild": "tsc",
     "test": "jest",
     "test-watch": "jest --watch",
     "test-cov": "jest --collectCoverage",

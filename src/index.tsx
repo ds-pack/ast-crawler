@@ -1,30 +1,37 @@
 import path from 'path'
 import fs from 'fs'
 
-// TODO:
+export interface FindArgs {
+  root: string
+  extensions: Array<string>
+  files: Array<string> | void
+  result: Array<string> | void
+}
 
-// Take a folder of files, generate a AST map for each of them
-// Take in a visitor, let the visitor crawl over these files
-
-function find(
-  base: string,
-  extensions: Array<string>,
-  files: Array<string> | void,
-  result: Array<string> | void,
-) {
-  files = files || fs.readdirSync(base)
+export function find({
+  root,
+  extensions,
+  files,
+  result,
+}: FindArgs): Array<string> {
+  files = files || fs.readdirSync(root)
   result = result || []
 
   files.forEach(function (file) {
-    var newbase = path.join(base, file)
-    if (fs.statSync(newbase).isDirectory()) {
-      result = find(newbase, extensions, fs.readdirSync(newbase), result)
+    var newroot = path.join(root, file)
+    if (fs.statSync(newroot).isDirectory()) {
+      result = find({
+        root: newroot,
+        extensions,
+        files: fs.readdirSync(newroot),
+        result,
+      })
     } else {
       if (extensions.includes(path.extname(file))) {
         if (typeof result === 'undefined') {
           result = []
         }
-        result.push(newbase)
+        result.push(newroot)
       }
     }
   })
@@ -32,40 +39,36 @@ function find(
 }
 
 // @TODO
-type AST = any
+export type AST = any
 
-interface ASTMap {
+export interface ASTMap {
   [path: string]: AST
 }
 
-interface GenerateArgs {
-  pathName: string
-  extensions: Array<string>
+export interface GenerateArgs {
+  // An array of file paths that we need to visit
+  files: Array<string>
+  // A function that returns a parser
   createParser: (path: string) => (contents: string) => AST
 }
 
-export function generateASTMap({
-  pathName,
-  extensions,
-  createParser,
-}: GenerateArgs): ASTMap {
-  let files = find(pathName, extensions)
-
+export function generateASTMap({ files, createParser }: GenerateArgs): ASTMap {
   let astMap: ASTMap = {}
   for (let file of files) {
     try {
-      // @TODO - this is going to be hot in large directories
-      // Could recommend that `createParser` is cached in some form under the hood
+      // @Note: This is going to be hot in large directories
+      // Recommend that `createParser` is cached in some form under the hood
       let parser = createParser(file)
       astMap[file] = parser(fs.readFileSync(file, 'utf-8').toString())
     } catch (err) {
-      // @TODO
+      console.log(err)
+      continue
     }
   }
   return astMap
 }
 
-interface VisitArgs {
+export interface VisitArgs {
   visitor: ({ ast, path }: { ast: AST; path: string }) => void
   astMap: ASTMap
 }
